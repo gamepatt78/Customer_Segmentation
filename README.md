@@ -500,7 +500,7 @@ The demonstration covers:
 * Visualizations
 * Business insights
 
-**Demo Video:** `[ADD VIDEO LINK]`
+**Demo Video:**(https://drive.google.com/file/d/1GNWcJIBnLicvGdGSiRBX0PQj-wFeKccB/view?usp=sharing)
 
 ---
 
