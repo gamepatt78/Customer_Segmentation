@@ -12,9 +12,9 @@
 
 ## 📌 Project Overview
 
-Customer segmentation is a data science technique used to divide customers into groups based on similarities in their demographic and behavioral characteristics.
+Customer segmentation is a data science technique used to divide customers into groups based on similarities in their characteristics and spending behavior.
 
-This project applies **K-Means Clustering**, an unsupervised machine learning algorithm, to identify meaningful customer segments using customer income and spending behavior.
+This project applies **K-Means Clustering**, an unsupervised machine learning algorithm, to identify meaningful customer segments using **Annual Income** and **Spending Score**.
 
 The objective is to discover groups of customers with similar characteristics and derive business insights that can support:
 
@@ -32,16 +32,17 @@ This project was completed as part of the **EncoderX Remote Internship — Data 
 
 The main objectives of this project are:
 
-1. Understand the characteristics of the customer dataset.
+1. Understand the customer dataset.
 2. Clean and preprocess the data.
-3. Perform exploratory data analysis.
-4. Normalize numerical features.
-5. Apply K-Means clustering.
-6. Determine an appropriate number of customer clusters.
-7. Evaluate the clustering using the Elbow Method and Silhouette Score.
-8. Visualize the identified customer segments.
-9. Interpret the characteristics of each segment.
-10. Develop meaningful business recommendations.
+3. Perform Exploratory Data Analysis.
+4. Select relevant clustering features.
+5. Normalize numerical features.
+6. Apply K-Means clustering.
+7. Determine an appropriate number of clusters.
+8. Evaluate clustering using the Elbow Method and Silhouette Score.
+9. Visualize customer segments.
+10. Profile and interpret the identified customer groups.
+11. Develop business recommendations.
 
 ---
 
@@ -52,19 +53,20 @@ The main objectives of this project are:
 The project uses the **Mall Customer Segmentation Data** dataset available on Kaggle.
 
 **Kaggle Dataset:**
+
 https://www.kaggle.com/datasets/vjchoudhary7/customer-segmentation-tutorial-in-python
 
 ### Dataset Features
 
-| Feature                  | Description                                      |
-| ------------------------ | ------------------------------------------------ |
-| `CustomerID`             | Unique customer identifier                       |
-| `Gender`                 | Customer gender                                  |
-| `Age`                    | Customer age                                     |
-| `Annual Income (k$)`     | Annual income in thousands of dollars            |
-| `Spending Score (1-100)` | Spending behavior score assigned to the customer |
+| Feature                  | Description                           |
+| ------------------------ | ------------------------------------- |
+| `CustomerID`             | Unique customer identifier            |
+| `Gender`                 | Customer gender                       |
+| `Age`                    | Customer age                          |
+| `Annual Income (k$)`     | Annual income in thousands of dollars |
+| `Spending Score (1-100)` | Spending behavior score               |
 
-The dataset contains customer demographic and spending information suitable for customer segmentation.
+The dataset contains **200 customers**.
 
 ---
 
@@ -156,33 +158,38 @@ Business Recommendations
 
 # 🧹 Data Preprocessing
 
-The following preprocessing steps were performed:
-
 ### 1. Missing Value Analysis
 
-The dataset was checked for missing values.
+The dataset was checked for missing values using:
 
 ```python
 df.isnull().sum()
 ```
 
-Where necessary, missing numerical values were handled using median imputation and categorical values using the mode.
+The dataset was examined to ensure that missing values would not affect the clustering analysis.
 
 ### 2. Duplicate Analysis
 
 Duplicate records were checked before performing clustering.
 
-### 3. Identifier Removal
+### 3. Identifier Handling
 
-`CustomerID` was excluded from the clustering features because it is an identifier rather than a behavioral or demographic characteristic.
+`CustomerID` was treated as an identifier and was not used as a clustering feature.
 
-### 4. Categorical Encoding
+### 4. Feature Selection
 
-The `Gender` feature was converted into a numerical representation where required.
+The final K-Means model used:
+
+```text
+Annual Income (k$)
+Spending Score (1-100)
+```
+
+These features were selected because they directly represent customer purchasing capacity and spending behavior.
 
 ### 5. Feature Scaling
 
-Numerical features were standardized using `StandardScaler`.
+The selected numerical features were standardized using `StandardScaler`.
 
 ```python
 from sklearn.preprocessing import StandardScaler
@@ -191,25 +198,23 @@ scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 ```
 
-Feature scaling is important for clustering because features with larger numerical ranges can otherwise have a greater influence on distance calculations.
+Scaling is important because K-Means uses distance calculations to assign customers to clusters.
 
 ---
 
 # 🔎 Exploratory Data Analysis
 
-Exploratory Data Analysis was performed to understand the characteristics of the customers and identify relationships between important variables.
+Exploratory Data Analysis was performed to understand customer characteristics and relationships between important variables.
 
-The analysis includes:
+The analysis included:
 
 * Age distribution
+* Gender distribution
 * Annual income distribution
 * Spending score distribution
-* Gender distribution
 * Age vs. spending score
 * Annual income vs. spending score
-* Feature correlation analysis
-
-### Key Visualization
+* Correlation analysis
 
 The relationship between:
 
@@ -219,7 +224,7 @@ Annual Income (k$)
 Spending Score (1-100)
 ```
 
-was examined because these variables provide useful information for distinguishing customer spending behavior.
+was particularly important because these variables were used for the final clustering model.
 
 ---
 
@@ -231,21 +236,21 @@ The algorithm works by:
 
 1. Selecting the number of clusters.
 2. Initializing cluster centroids.
-3. Assigning customers to their nearest centroid.
+3. Assigning customers to the nearest centroid.
 4. Updating the centroid positions.
 5. Repeating the process until the clusters stabilize.
 
-In this project, K-Means was applied to the selected customer features after normalization.
+The model was trained using the standardized Annual Income and Spending Score features.
 
 ---
 
 # 📐 Determining the Number of Clusters
 
-Two evaluation approaches were used.
+Two evaluation methods were used:
 
 ## Elbow Method
 
-The Elbow Method evaluates the within-cluster sum of squares, represented by inertia, for different values of `K`.
+The Elbow Method evaluates the clustering inertia for different values of `K`.
 
 ```python
 inertia = []
@@ -256,53 +261,135 @@ for k in range(2, 11):
         random_state=42,
         n_init=10
     )
-    
+
     kmeans.fit(X_scaled)
     inertia.append(kmeans.inertia_)
 ```
 
-The resulting curve was analyzed to identify an appropriate cluster count.
-
----
+The inertia curve was examined to identify a suitable number of clusters.
 
 ## Silhouette Score
 
-The Silhouette Score measures how well each customer fits within its assigned cluster compared with other clusters.
+The Silhouette Score was calculated for different values of `K`.
 
-```python
-from sklearn.metrics import silhouette_score
+The scores obtained were:
 
-score = silhouette_score(
-    X_scaled,
-    labels
-)
+| K     | Silhouette Score |
+| ----- | ---------------: |
+| 2     |           0.3213 |
+| 3     |           0.4666 |
+| 4     |           0.4939 |
+| **5** |       **0.5547** |
+| 6     |           0.5399 |
+| 7     |           0.5281 |
+| 8     |           0.4552 |
+| 9     |           0.4571 |
+| 10    |           0.4432 |
 
-print(score)
-```
+The final project used **K = 5**.
 
-The Elbow Method and Silhouette Score were considered together when selecting the final clustering configuration.
+The final Silhouette Score was:
+
+**0.5547**
 
 ---
 
-# 📊 Customer Segmentation
+# 📊 Final K-Means Model
 
-After selecting the clustering configuration, K-Means was applied to the standardized customer features.
+The final model was configured as:
 
-The resulting clusters were analyzed based on:
+```python
+optimal_k = 5
 
-* Average age
-* Average annual income
-* Average spending score
-* Customer count
-* Gender distribution
+kmeans = KMeans(
+    n_clusters=optimal_k,
+    random_state=42,
+    n_init=10
+)
 
-A cluster profile table was generated to understand the characteristics of each segment.
+clusters = kmeans.fit_predict(X_scaled)
+
+df["Cluster"] = clusters
+```
+
+### Final Results
+
+```text
+Number of Customers: 200
+Number of Clusters: 5
+Final Silhouette Score: 0.5547
+```
+
+---
+
+# 👥 Customer Segmentation Results
+
+The final dataset contains five customer segments.
+
+| Cluster | Customer Segment               | Avg. Age | Avg. Income (k$) | Avg. Spending Score | Customers |
+| ------: | ------------------------------ | -------: | ---------------: | ------------------: | --------: |
+|       0 | Standard Customers             |    42.72 |            55.30 |               49.52 |        81 |
+|       1 | High-Value Customers           |    32.69 |            86.54 |               82.13 |        39 |
+|       2 | Careful Spenders               |    25.27 |            25.73 |               79.36 |        22 |
+|       3 | Premium Low-Spending Customers |    41.11 |            88.20 |               17.11 |        35 |
+|       4 | Young High-Spending Customers  |    45.22 |            26.30 |               20.91 |        23 |
+
+---
+
+# 📌 Segment Interpretation
+
+### Cluster 0 — Standard Customers
+
+* Average age: **42.72**
+* Average income: **55.30k**
+* Average spending score: **49.52**
+* Customers: **81**
+
+This is the largest customer segment and represents customers with relatively moderate income and spending behavior.
+
+### Cluster 1 — High-Value Customers
+
+* Average age: **32.69**
+* Average income: **86.54k**
+* Average spending score: **82.13**
+* Customers: **39**
+
+This segment combines relatively high income with high spending activity.
+
+### Cluster 2 — Careful Spenders
+
+* Average age: **25.27**
+* Average income: **25.73k**
+* Average spending score: **79.36**
+* Customers: **22**
+
+This segment has relatively lower income but a high spending score.
+
+### Cluster 3 — Premium Low-Spending Customers
+
+* Average age: **41.11**
+* Average income: **88.20k**
+* Average spending score: **17.11**
+* Customers: **35**
+
+This segment has relatively high income but a low spending score.
+
+### Cluster 4 — Young High-Spending Customers
+
+* Average age: **45.22**
+* Average income: **26.30k**
+* Average spending score: **20.91**
+* Customers: **23**
+
+This segment has relatively lower income and lower spending activity based on the final cluster profile.
+
+> **Note:** Segment names are descriptive labels assigned to the project clusters based on their observed average characteristics.
 
 ---
 
 # 📈 Visualizations
 
-The project includes the following visualizations:
+The project includes visualizations for:
 
 ### Customer Demographics
 
@@ -320,51 +407,30 @@ The project includes the following visualizations:
 
 * Elbow Method
 * Silhouette Score
-* Cluster distribution
 * Customer segment scatter plot
 * Cluster centers
-* PCA-based visualization
+* PCA visualization
 * Correlation heatmap
 
-These visualizations help communicate the differences between customer segments.
-
----
-
-# 👥 Customer Segment Interpretation
-
-The identified clusters are interpreted using their average demographic and spending characteristics.
-
-A typical interpretation framework is:
-
-| Segment Characteristic              | Business Interpretation                             |
-| ----------------------------------- | --------------------------------------------------- |
-| High income + high spending         | Potential high-value customers                      |
-| High income + low spending          | Customers with potential for targeted engagement    |
-| Low income + high spending          | Customers showing strong spending behavior          |
-| Low income + low spending           | Customers with relatively lower purchasing activity |
-| Moderate income + moderate spending | Standard or average customer group                  |
-
-> **Note:** The final segment names and descriptions should be based on the actual cluster profile generated by the notebook.
+These visualizations help demonstrate the differences between the identified customer groups.
 
 ---
 
 # 💡 Business Insights
 
-Customer segmentation can help organizations understand that customers do not have identical purchasing behavior.
-
-Potential business applications include:
+The segmentation demonstrates that customers can have significantly different combinations of income and spending behavior.
 
 ### Targeted Marketing
 
-Different customer groups can receive different marketing campaigns based on their spending behavior and demographic characteristics.
+Marketing campaigns can be customized according to the characteristics of each customer segment.
 
 ### Personalized Offers
 
-Customers with lower spending activity can receive targeted discounts or promotional offers.
+Customers with lower spending scores can be targeted with relevant promotional offers.
 
 ### Customer Engagement
 
-High-spending customers can be targeted with loyalty programs and personalized campaigns.
+Higher-spending customer groups can be considered for loyalty and engagement programs.
 
 ### Product Recommendations
 
@@ -372,51 +438,47 @@ Customer segments can be used to develop more relevant product recommendations.
 
 ### Customer Retention
 
-Segment-level analysis can help identify groups that may require additional engagement to improve retention.
+Segment-level analysis can help organizations identify customer groups that may require additional engagement.
 
 ---
 
 # 📌 Key Findings
 
-The final findings should be updated after executing the notebook.
-
 ### Clustering Results
 
 ```text
-Number of clusters: [INSERT FINAL K]
-
-Silhouette Score: [INSERT SCORE]
-
-Number of customers: [INSERT COUNT]
+Number of Customers: 200
+Number of Clusters: 5
+Final Silhouette Score: 0.5547
 ```
 
-### Segment Summary
+### Most Representative Segment Profiles
 
-| Cluster   | Average Age | Average Income | Average Spending Score | Customer Count |
-| --------- | ----------: | -------------: | ---------------------: | -------------: |
-| Cluster 0 |     [Value] |        [Value] |                [Value] |        [Value] |
-| Cluster 1 |     [Value] |        [Value] |                [Value] |        [Value] |
-| Cluster 2 |     [Value] |        [Value] |                [Value] |        [Value] |
-| Cluster 3 |     [Value] |        [Value] |                [Value] |        [Value] |
-| Cluster 4 |     [Value] |        [Value] |                [Value] |        [Value] |
+| Segment                        | Income Level | Spending Level | Customers |
+| ------------------------------ | ------------ | -------------- | --------: |
+| Standard Customers             | Moderate     | Moderate       |        81 |
+| High-Value Customers           | High         | High           |        39 |
+| Careful Spenders               | Low          | High           |        22 |
+| Premium Low-Spending Customers | High         | Low            |        35 |
+| Young High-Spending Customers  | Low          | Low            |        23 |
 
 ---
 
 # 📈 Model Evaluation
 
-The clustering solution was evaluated using:
+The clustering solution was evaluated using three approaches.
 
 ### Elbow Method
 
-Used to examine the relationship between the number of clusters and clustering inertia.
+Used to examine how clustering inertia changes as the number of clusters increases.
 
 ### Silhouette Score
 
-Used to evaluate how well-separated and internally consistent the clusters are.
+The final clustering configuration achieved a **Silhouette Score of 0.5547**.
 
 ### Cluster Visualization
 
-Scatter plots and PCA visualization were used to visually inspect the separation between customer segments.
+Scatter plots and PCA visualization were used to inspect the separation and distribution of the customer segments.
 
 ---
 
@@ -425,13 +487,13 @@ Scatter plots and PCA visualization were used to visually inspect the separation
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Customer-Segmentation-KMeans.git
+git clone https://github.com/gamepatt78/Customer_Segmentation.git
 ```
 
 ## 2. Navigate to the Project
 
 ```bash
-cd Customer-Segmentation-KMeans
+cd Customer_Segmentation
 ```
 
 ## 3. Install Dependencies
@@ -448,8 +510,6 @@ jupyter notebook
 
 ## 5. Open the Notebook
 
-Open:
-
 ```text
 Customer_Segmentation_EncoderX_Week03.ipynb
 ```
@@ -462,24 +522,23 @@ Execute the notebook from beginning to end to reproduce the analysis and cluster
 
 # 📦 Deliverables
 
-This project includes the deliverables required for the EncoderX Week 03 task:
-
-* [x] Customer-related dataset
-* [x] Data preprocessing
-* [x] Missing-value analysis
-* [x] Numerical feature normalization
-* [x] Exploratory Data Analysis
-* [x] Feature analysis
-* [x] K-Means clustering
-* [x] Optimal cluster investigation
-* [x] Elbow Method
-* [x] Silhouette Score
-* [x] Cluster visualizations
-* [x] Customer segment interpretation
-* [x] Business recommendations
-* [x] Jupyter Notebook
-* [x] Source code
-* [x] README documentation
+* Customer dataset
+* Data preprocessing
+* Missing-value analysis
+* Numerical feature normalization
+* Exploratory Data Analysis
+* Feature analysis
+* K-Means clustering
+* Optimal cluster investigation
+* Elbow Method
+* Silhouette Score
+* Cluster visualizations
+* Customer segment interpretation
+* Business recommendations
+* Jupyter Notebook
+* Source code
+* README documentation
+* Final customer segmentation CSV
 
 ---
 
@@ -493,6 +552,7 @@ The demonstration covers:
 * Dataset
 * Data preprocessing
 * Exploratory Data Analysis
+* Feature selection
 * K-Means clustering
 * Elbow Method
 * Silhouette Score
@@ -500,49 +560,32 @@ The demonstration covers:
 * Visualizations
 * Business insights
 
-**Demo Video:**(https://drive.google.com/file/d/1GNWcJIBnLicvGdGSiRBX0PQj-wFeKccB/view?usp=sharing)
+**Demo Video:**
 
----
-
-# 📊 Presentation
-
-**Presentation:** `[ADD PRESENTATION LINK OR FILE]`
-
-The presentation summarizes:
-
-* Problem statement
-* Dataset
-* Methodology
-* EDA
-* Clustering
-* Evaluation
-* Customer segments
-* Business insights
-* Recommendations
-* Conclusion
+https://drive.google.com/file/d/1GNWcJIBnLicvGdGSiRBX0PQj-wFeKccB/view?usp=sharing
 
 ---
 
 # 🔗 Project Links
 
-| Resource          | Link                                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------- |
-| GitHub Repository | `[ADD GITHUB LINK]`                                                                                     |
-| Jupyter Notebook  | `[ADD NOTEBOOK LINK]`                                                                                   |
-| Dataset           | [Kaggle Dataset](https://www.kaggle.com/datasets/vjchoudhary7/customer-segmentation-tutorial-in-python) |
-| Demo Video        | `[ADD VIDEO LINK]`                                                                                      |
-| LinkedIn Post     | `[ADD LINKEDIN POST LINK]`                                                                              |
-| Presentation      | `[ADD PRESENTATION LINK]`                                                                               |
+| Resource              | Link                                                                                                                               |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **GitHub Repository** | https://github.com/gamepatt78/Customer_Segmentation                                                                                |
+| **Dataset**           | https://www.kaggle.com/datasets/vjchoudhary7/customer-segmentation-tutorial-in-python                                              |
+| **Demo Video**        | https://drive.google.com/file/d/1GNWcJIBnLicvGdGSiRBX0PQj-wFeKccB/view?usp=sharing                                                 |
+| **LinkedIn Post**     | https://www.linkedin.com/posts/athwin-videsh-b40723125_encoderx-datascience-customersegmentation-activity-7507988758647066624-Kv4x |
 
 ---
 
 # 🏁 Conclusion
 
-This project demonstrates the use of **unsupervised machine learning for customer segmentation**.
+This project demonstrates the application of **unsupervised machine learning for customer segmentation** using K-Means clustering.
 
-By combining data preprocessing, exploratory analysis, feature scaling, K-Means clustering, clustering evaluation, visualization, and business interpretation, the project identifies groups of customers with similar characteristics.
+The analysis used customer **Annual Income** and **Spending Score** as the primary clustering features. After feature scaling and evaluation using the Elbow Method and Silhouette Score, a **5-cluster solution** was used.
 
-The resulting segmentation can provide useful insights for targeted marketing, customer engagement, personalized recommendations, and retention strategies.
+The final model achieved a **Silhouette Score of 0.5547** and identified five distinct customer segments with different income and spending characteristics.
+
+These segments can provide useful insights for targeted marketing, customer engagement, personalized recommendations, and retention strategies.
 
 ---
 
@@ -552,10 +595,10 @@ The resulting segmentation can provide useful insights for targeted marketing, c
 
 MCA Graduate | Data Science
 
-GitHub:
+**GitHub:**
 https://github.com/gamepatt78
 
-LinkedIn:
+**LinkedIn:**
 https://linkedin.com/in/athwin-videsh-b40723125
 
 ---
@@ -568,6 +611,8 @@ https://linkedin.com/in/athwin-videsh-b40723125
 #CustomerSegmentation
 #MachineLearning
 #DataAnalytics
+#KMeans
+#Clustering
 #Internship
 #LearningInPublic
 ```
@@ -577,6 +622,7 @@ https://linkedin.com/in/athwin-videsh-b40723125
 ## 📜 Internship
 
 **EncoderX Remote Internship — Data Science**
+
 **Batch:** 02
 **Week:** 03
 **Task:** Customer Segmentation
